@@ -337,124 +337,38 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
 .hidden { display: none !important; }
 
 /* end of file */
-/* ---------- Premium subcategory + thumbnail polish (paste at end of style.css) ---------- */
+/* ---------- Make Subcategory Buttons Look Like Gold/Diamond Pills ---------- */
 
-/* Subcategory refined: glass pill + gold accent */
 #subcategory-buttons {
   position: fixed;
   bottom: 60px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 12px;
-  align-items: center;
-  z-index: 22;
-  padding: 6px;
-  pointer-events: auto;
+  gap: 16px;
+  z-index: 25;
 }
 
 #subcategory-buttons button {
-  padding: 8px 16px;
+  padding: 10px 20px;
   border-radius: 999px;
-  border: 1px solid rgba(212,175,55,0.06); /* faint gold rim */
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  color: #e9e2d6; /* warm light */
-  font-size: 14px;
+  border: none;
+  background: linear-gradient(180deg, #f4c542, #e1a722);
+  color: #000;
   font-weight: 600;
+  font-size: 15px;
   cursor: pointer;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
-  transition: transform .12s ease, background .12s ease, color .12s ease;
-  font-family: 'Montserrat', system-ui, sans-serif;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.45);
+  transition: transform .15s ease, box-shadow .15s ease;
 }
 
-/* emphasize currently selected with gold */
-#subcategory-buttons button.active,
 #subcategory-buttons button:hover {
-  background: linear-gradient(180deg, rgba(212,175,55,0.14), rgba(244,166,0,0.06));
-  color: var(--accent-contrast);
   transform: translateY(-4px);
-  border-color: rgba(212,175,55,0.22);
-  box-shadow: 0 12px 34px rgba(212,175,55,0.06);
+  box-shadow: 0 8px 26px rgba(0,0,0,0.55);
 }
 
-/* Jewelry options: premium card look */
-#jewelry-options {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  padding: 14px;
-  z-index: 20;
-  background: linear-gradient(180deg, rgba(11,11,11,0.85), rgba(10,10,10,0.92));
-  border-top: 1px solid rgba(255,255,255,0.03);
-}
-
-/* card button wrapper */
-#jewelry-options button {
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
-  border-radius: 12px;
-  padding: 8px 10px;
-  min-width: 96px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  border: 1px solid rgba(212,175,55,0.06);
-  cursor: pointer;
-  transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.6);
-}
-
-/* thumbnail image as product preview */
-#jewelry-options img {
-  height: 66px;
-  width: 66px;
-  object-fit: contain;
-  border-radius: 8px;
-  background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.08));
-  padding: 6px;
-  box-shadow: 0 8px 18px rgba(0,0,0,0.55);
-}
-
-/* label under each thumbnail */
-#jewelry-options .label {
-  font-family: 'Playfair Display', serif;
-  font-size: 12px;
-  color: var(--muted);
-  letter-spacing: 0.3px;
-  text-align: center;
-  max-width: 110px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* hover/active state */
-#jewelry-options button:hover {
-  transform: translateY(-6px);
-  border-color: rgba(212,175,55,0.18);
-  box-shadow: 0 18px 36px rgba(0,0,0,0.6);
-}
-#jewelry-options button:active {
-  transform: translateY(-2px);
-}
-
-/* make scroll subtle and smooth */
-#jewelry-options::-webkit-scrollbar { height: 8px; }
-#jewelry-options::-webkit-scrollbar-thumb { background: linear-gradient(180deg,var(--accent),var(--accent-2)); border-radius: 8px; opacity: 0.95; }
-
-/* responsive tweak: larger thumbnails on tablet */
-@media (min-width: 900px) {
-  #jewelry-options img { height: 72px; width: 72px; }
-  #jewelry-options .label { font-size: 13px; }
-}
-
-/* small screens: make carousel row denser */
-@media (max-width: 520px) {
-  #jewelry-options { padding: 10px; gap: 8px; }
-  #jewelry-options img { height: 56px; width: 56px; }
-  #jewelry-options .label { max-width: 84px; font-size: 11px; }
+/* Active subcategory (same gold style as main active pill) */
+#subcategory-buttons button.active {
+  background: linear-gradient(180deg, #ffdb70, #f4b400);
+  color: #000;
 }
