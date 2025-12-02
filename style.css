@@ -1,0 +1,460 @@
+/* style.css — Merged & cleaned version for Nishanth (warm-gold premium) */
+
+/* ---------- Fonts ---------- */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@300;500;700&display=swap');
+
+:root{
+  --bg: #000000;
+  --panel: #0b0b0b;
+  --card: #0f0f10;
+  --muted: #c2b9ae;
+  --accent: #d4af37;     /* warm gold */
+  --accent-2: #f4a600;
+  --accent-contrast: #0b0b0b;
+  --glass: rgba(255,255,255,0.03);
+  --glass-2: rgba(255,255,255,0.02);
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --shadow-1: 0 8px 30px rgba(0,0,0,0.6);
+  --glass-border: rgba(255,255,255,0.04);
+}
+
+/* ---------- Reset & base ---------- */
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff; font-family: Montserrat, system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+
+/* ---------- App container ---------- */
+#app { width: 100vw; height: 100vh; position: relative; }
+
+/* Logo (kept for compatibility) */
+#logo { position: fixed; top: 12px; left: 12px; z-index: 10; }
+#logo img { height: 40px; }
+
+/* Video & Canvas */
+#video-container { position: absolute; inset: 0; overflow: hidden; background: #000; z-index: 0; }
+#webcam { display: none; }
+#overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+  z-index: 1;
+}
+
+/* ---------- Jewelry category bar ---------- */
+#jewelry-mode {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 16px;
+  z-index: 20;
+  pointer-events: auto;
+}
+#jewelry-mode button {
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  color: var(--accent-contrast);
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(212,175,55,0.12);
+  transition: transform .12s ease;
+}
+#jewelry-mode button:hover { transform: translateY(-4px); }
+#tryall-btn { background: rgba(255,255,255,0.06); color: #fff; }
+#tryall-btn.active { background: var(--accent); color: var(--accent-contrast); }
+
+/* Subcategory buttons */
+#subcategory-buttons {
+  position: fixed;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 20;
+}
+#subcategory-buttons button {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255,255,255,0.04);
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+}
+#subcategory-buttons button:hover { color: #fff; background: rgba(255,255,255,0.06); }
+
+/* Jewelry thumbnails */
+#jewelry-options {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+  display: flex;
+  overflow-x: auto;
+  padding: 10px 12px;
+  gap: 10px;
+  z-index: 20;
+  border-top: 1px solid rgba(255,255,255,0.03);
+}
+#jewelry-options button { background: transparent; border: none; padding: 0; cursor: pointer; }
+#jewelry-options img { height: 60px; width: auto; object-fit: contain; filter: drop-shadow(0 6px 18px rgba(0,0,0,0.7)); }
+
+/* Snapshot button */
+#snapshot-btn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  z-index: 20;
+}
+#snapshot-btn img { width: 36px; height: 36px; filter: invert(1) brightness(2); }
+
+/* Info button */
+#info-btn {
+  position: fixed;
+  top: 16px;
+  right: 70px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255,255,255,0.03);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  z-index: 20;
+}
+#info-btn:hover { background: rgba(255,255,255,0.05); }
+
+/* Location button */
+#location-btn { position: fixed; bottom: 10px; left: 20px; background: transparent; border: none; z-index: 20; }
+#location-btn img { width: 42px; height: 42px; filter: invert(1) brightness(1.6); }
+
+/* Info Modal */
+#info-modal {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(6,6,6,0.98);
+  padding: 22px;
+  border-radius: 14px;
+  max-width: 92%;
+  width: 420px;
+  z-index: 9999;
+  border: 1px solid rgba(255,255,255,0.03);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+}
+#info-modal h3 { margin-bottom: 10px; text-align: center; font-family: 'Playfair Display', serif; color: var(--accent); }
+.info-content ul { padding-left: 20px; line-height: 1.6; color: var(--muted); }
+.close-btn { background: var(--accent); color: var(--accent-contrast); padding: 10px 15px; border-radius: 8px; border: none; cursor: pointer; margin-top: 16px; }
+
+/* Snapshot Modal */
+#snapshot-modal {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  color: #000;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  max-width: 92%;
+  width: 460px;
+  z-index: 9999;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+#snapshot-preview { width: 100%; max-width: 420px; border-radius: 10px; margin-bottom: 12px; }
+.snapshot-buttons button { margin: 6px; padding: 10px 16px; border-radius: 8px; border: none; background: var(--accent); color: var(--accent-contrast); cursor: pointer; }
+
+/* Flash Overlay */
+#flash-overlay {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease-out;
+  z-index: 9998;
+}
+#flash-overlay.active { opacity: 0.85; }
+
+/* ===========================
+   FULLSCREEN GALLERY MODAL
+   ===========================*/
+#gallery-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.86);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+}
+.gallery-content {
+  background: linear-gradient(180deg,#0b0b0b,#070707);
+  border-radius: 18px;
+  padding: 20px;
+  max-width: 95%;
+  width: 860px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+  position: relative;
+  border: 1px solid rgba(255,255,255,0.03);
+}
+
+#gallery-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* Layout: main image + side slider */
+#gallery-layout { display: flex; gap: 14px; justify-content: center; align-items: center; flex-wrap: wrap; }
+
+/* Big main image */
+#gallery-main {
+  width: 78%;
+  max-height: 82vh;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #000;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+}
+
+/* Side thumbnail slider */
+#gallery-side-slider {
+  width: 18%;
+  max-height: 82vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: rgba(255,255,255,0.02);
+  border-radius: 12px;
+  padding: 8px;
+  border: 1px solid rgba(255,255,255,0.02);
+}
+#gallery-side-slider::-webkit-scrollbar { width: 6px; }
+#gallery-side-slider::-webkit-scrollbar-thumb { background: linear-gradient(180deg,var(--accent),var(--accent-2)); border-radius: 4px; }
+
+/* thumbs container */
+#gallery-thumbs { display: flex; flex-direction: column; gap: 10px; }
+#gallery-thumbs img {
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
+  cursor: pointer;
+  border-radius: 8px;
+  border: 2px solid transparent;
+}
+#gallery-thumbs img.active { border-color: var(--accent); box-shadow: 0 8px 20px rgba(212,175,55,0.08); }
+
+/* Buttons under gallery */
+.gallery-buttons { display: flex; justify-content: center; margin-top: 12px; gap: 12px; }
+.gallery-buttons button {
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255,255,255,0.03);
+  color: var(--muted);
+  cursor: pointer;
+}
+.gallery-buttons button:hover { background: rgba(255,255,255,0.06); color: #fff; }
+
+/* ===========================
+   MOBILE LAYOUT
+   ===========================*/
+@media (max-width: 650px) {
+  #gallery-layout { flex-direction: column; }
+  #gallery-main { width: 100%; max-height: 70vh; }
+  #gallery-side-slider {
+    width: 100%;
+    max-height: 120px;
+    overflow-y: hidden;
+    overflow-x: auto;
+    padding: 10px 0;
+  }
+  #gallery-thumbs { flex-direction: row; gap: 10px; }
+  #gallery-thumbs img { width: 90px; height: 90px; }
+}
+
+/* ===========================
+   LIVE TUNING PANEL (kept)
+   ===========================*/
+#tuning-panel {
+  position: fixed;
+  right: 14px;
+  top: 80px;
+  width: 270px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(6px);
+  padding: 12px;
+  border-radius: 12px;
+  z-index: 10000;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+  color: #fff;
+  font-size: 13px;
+}
+#tuning-panel h4 { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+.tune-row { margin-bottom: 10px; display: flex; flex-direction: column; gap: 6px; }
+.tune-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+.tune-value { background: rgba(0,0,0,0.45); padding: 2px 8px; border-radius: 99px; font-size: 12px; font-weight: 700; color: #fff; }
+.tune-row input[type="range"] { width: 100%; -webkit-appearance: none; appearance: none; height: 6px; background: rgba(255,255,255,0.1); border-radius: 99px; outline: none; }
+.tune-row input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 2px solid rgba(0,0,0,0.25); box-shadow: 0 4px 10px rgba(0,0,0,0.4); cursor: pointer; }
+.toggle-row { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+.toggle { --w:44px; --h:24px; width: var(--w); height: var(--h); background: rgba(255,255,255,0.08); border-radius: 999px; position: relative; cursor: pointer; transition: background .18s; }
+.toggle .knob { position: absolute; top: 2px; left: 2px; width: calc(var(--h) - 4px); height: calc(var(--h) - 4px); background: #fff; border-radius: 50%; transition: left .18s, background .18s; }
+.toggle.on { background: linear-gradient(90deg,var(--accent),var(--accent-2)); }
+.toggle.on .knob { left: calc(var(--w) - var(--h) + 2px); background: #fff; }
+.tuning-help { font-size: 11px; color: rgba(255,255,255,0.72); margin-top: 6px; }
+#tuning-panel.hidden { display: none !important; }
+
+/* small helpers */
+.hidden { display: none !important; }
+
+/* end of file */
+/* ---------- Premium subcategory + thumbnail polish (paste at end of style.css) ---------- */
+
+/* Subcategory refined: glass pill + gold accent */
+#subcategory-buttons {
+  position: fixed;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  z-index: 22;
+  padding: 6px;
+  pointer-events: auto;
+}
+
+#subcategory-buttons button {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(212,175,55,0.06); /* faint gold rim */
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  color: #e9e2d6; /* warm light */
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+  transition: transform .12s ease, background .12s ease, color .12s ease;
+  font-family: 'Montserrat', system-ui, sans-serif;
+}
+
+/* emphasize currently selected with gold */
+#subcategory-buttons button.active,
+#subcategory-buttons button:hover {
+  background: linear-gradient(180deg, rgba(212,175,55,0.14), rgba(244,166,0,0.06));
+  color: var(--accent-contrast);
+  transform: translateY(-4px);
+  border-color: rgba(212,175,55,0.22);
+  box-shadow: 0 12px 34px rgba(212,175,55,0.06);
+}
+
+/* Jewelry options: premium card look */
+#jewelry-options {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 14px;
+  z-index: 20;
+  background: linear-gradient(180deg, rgba(11,11,11,0.85), rgba(10,10,10,0.92));
+  border-top: 1px solid rgba(255,255,255,0.03);
+}
+
+/* card button wrapper */
+#jewelry-options button {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+  border-radius: 12px;
+  padding: 8px 10px;
+  min-width: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(212,175,55,0.06);
+  cursor: pointer;
+  transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+}
+
+/* thumbnail image as product preview */
+#jewelry-options img {
+  height: 66px;
+  width: 66px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.08));
+  padding: 6px;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.55);
+}
+
+/* label under each thumbnail */
+#jewelry-options .label {
+  font-family: 'Playfair Display', serif;
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.3px;
+  text-align: center;
+  max-width: 110px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* hover/active state */
+#jewelry-options button:hover {
+  transform: translateY(-6px);
+  border-color: rgba(212,175,55,0.18);
+  box-shadow: 0 18px 36px rgba(0,0,0,0.6);
+}
+#jewelry-options button:active {
+  transform: translateY(-2px);
+}
+
+/* make scroll subtle and smooth */
+#jewelry-options::-webkit-scrollbar { height: 8px; }
+#jewelry-options::-webkit-scrollbar-thumb { background: linear-gradient(180deg,var(--accent),var(--accent-2)); border-radius: 8px; opacity: 0.95; }
+
+/* responsive tweak: larger thumbnails on tablet */
+@media (min-width: 900px) {
+  #jewelry-options img { height: 72px; width: 72px; }
+  #jewelry-options .label { font-size: 13px; }
+}
+
+/* small screens: make carousel row denser */
+@media (max-width: 520px) {
+  #jewelry-options { padding: 10px; gap: 8px; }
+  #jewelry-options img { height: 56px; width: 56px; }
+  #jewelry-options .label { max-width: 84px; font-size: 11px; }
+}

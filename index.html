@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Aurum Atelier — AR Jewelry Try-On</title>
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Mediapipe FaceMesh -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+
+  <!-- TensorFlow + BodyPix (optional occlusion) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2.0.5/dist/body-pix.min.js"></script>
+
+  <!-- Utility libs for gallery export (keeps existing features) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- Canvas & video -->
+    <div id="video-container">
+      <video id="webcam" autoplay playsinline muted style="display:none;"></video>
+      <canvas id="overlay"></canvas>
+    </div>
+
+    <!-- ====== TOP CONTROL BAR (PREMIUM) ====== -->
+    <section id="controls-hero" aria-hidden="false">
+      <div class="brand-row">
+        <div class="brand-left">
+          <img src="logo.png" alt="Brand" class="brand-logo" />
+          <div class="brand-meta">
+            <div class="brand-name">Aurum Atelier</div>
+            <div class="brand-tag">Studio-grade AR • Try before you buy</div>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button id="info-btn" class="icon-btn" onclick="toggleInfoModal()" aria-label="Info">ℹ️</button>
+          <button id="snapshot-btn" class="primary-circle" onclick="takeSnapshot()" aria-label="Snapshot">
+            <img src="camera-icon.png" alt="Snapshot" />
+          </button>
+        </div>
+      </div>
+
+      <div class="controls-panel">
+        <div id="jewelry-mode" class="pill-group" role="tablist" aria-label="Jewelry categories">
+          <button class="pill" onclick="toggleCategory('gold')">Gold</button>
+          <button class="pill" onclick="toggleCategory('diamond')">Diamond</button>
+          <button id="tryall-btn" class="pill accent" onclick="toggleTryAll()">Try All</button>
+        </div>
+
+        <div id="subcategory-buttons" class="sub-pills" style="display:none;">
+          <button onclick="selectJewelryType('gold_earrings')" class="subpill">Gold Earrings</button>
+          <button onclick="selectJewelryType('gold_necklaces')" class="subpill">Gold Necklaces</button>
+          <button onclick="selectJewelryType('diamond_earrings')" class="subpill">Diamond Earrings</button>
+          <button onclick="selectJewelryType('diamond_necklaces')" class="subpill">Diamond Necklaces</button>
+        </div>
+
+        <div id="jewelry-options" class="carousel-cards" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- small location link (left bottom) -->
+    <a id="location-btn" href="#" class="location-link" target="_blank" rel="noopener noreferrer">
+      <img src="location_icon.png" alt="Location" />
+    </a>
+
+    <!-- Flash overlay (snapshot effect) -->
+    <div id="flash-overlay" aria-hidden="true"></div>
+
+    <!-- Info modal -->
+    <div id="info-modal" role="dialog" aria-modal="true" aria-labelledby="info-title" style="display:none;">
+      <h3 id="info-title">How to use</h3>
+      <div class="info-content">
+        <ul>
+          <li>Allow camera access when prompted.</li>
+          <li>Choose category → pick a design or press Try All.</li>
+          <li>Press Stop to view the gallery of captured looks.</li>
+        </ul>
+        <button class="close-btn" onclick="toggleInfoModal()">Got it</button>
+      </div>
+    </div>
+
+    <!-- Snapshot modal -->
+    <div id="snapshot-modal" role="dialog" aria-modal="true" style="display:none;">
+      <img id="snapshot-preview" alt="Snapshot preview" />
+      <div class="snapshot-buttons">
+        <button onclick="saveSnapshot()">Download</button>
+        <button onclick="shareSnapshot()">Share</button>
+        <button onclick="closeSnapshotModal()">Close</button>
+      </div>
+    </div>
+
+    <!-- Fullscreen Gallery Modal -->
+    <div id="gallery-modal" role="dialog" aria-modal="true" style="display:none;">
+      <div class="gallery-content">
+        <button id="gallery-close" aria-label="Close gallery">×</button>
+        <div id="gallery-layout">
+          <img id="gallery-main" alt="Look" />
+          <div id="gallery-side-slider"><div id="gallery-thumbs"></div></div>
+        </div>
+        <div class="gallery-buttons">
+          <button onclick="downloadAllImages()">Download All</button>
+          <button onclick="shareCurrentFromGallery()">Share</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- main script (keeps existing script.js) -->
+  <script src="script.js"></script>
+</body>
+</html>
