@@ -45,10 +45,10 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
   z-index: 1;
 }
 
-/* ---------- Jewelry category bar ---------- */
+/* ---------- Jewelry category bar (Gold / Diamond / Try All) ---------- */
 #jewelry-mode {
   position: fixed;
-  bottom: 100px;
+  bottom: 190px;              /* moved higher so nothing overlaps thumbnails */
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -72,28 +72,39 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
 #tryall-btn { background: rgba(255,255,255,0.06); color: #fff; }
 #tryall-btn.active { background: var(--accent); color: var(--accent-contrast); }
 
-/* Subcategory buttons */
+/* ---------- Subcategory buttons (Gold Earrings / Necklaces etc.) ---------- */
 #subcategory-buttons {
   position: fixed;
-  bottom: 60px;
+  bottom: 140px;              /* above thumbnails, below main category pills */
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 10px;
-  z-index: 20;
+  gap: 16px;
+  z-index: 25;
 }
 #subcategory-buttons button {
-  padding: 8px 14px;
+  padding: 10px 20px;
   border-radius: 999px;
   border: none;
-  background: rgba(255,255,255,0.04);
-  color: var(--muted);
-  font-size: 14px;
+  background: linear-gradient(180deg, #f4c542, #e1a722);
+  color: #000;
+  font-weight: 600;
+  font-size: 15px;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.45);
+  transition: transform .15s ease, box-shadow .15s ease;
 }
-#subcategory-buttons button:hover { color: #fff; background: rgba(255,255,255,0.06); }
+#subcategory-buttons button:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 26px rgba(0,0,0,0.55);
+}
+/* optional active look */
+#subcategory-buttons button.active {
+  background: linear-gradient(180deg, #ffdb70, #f4b400);
+  color: #000;
+}
 
-/* Jewelry thumbnails */
+/* ---------- Jewelry thumbnails row ---------- */
 #jewelry-options {
   position: fixed;
   bottom: 0;
@@ -108,9 +119,14 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
   border-top: 1px solid rgba(255,255,255,0.03);
 }
 #jewelry-options button { background: transparent; border: none; padding: 0; cursor: pointer; }
-#jewelry-options img { height: 60px; width: auto; object-fit: contain; filter: drop-shadow(0 6px 18px rgba(0,0,0,0.7)); }
+#jewelry-options img {
+  height: 60px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 18px rgba(0,0,0,0.7));
+}
 
-/* Snapshot button */
+/* ---------- Snapshot button ---------- */
 #snapshot-btn {
   position: fixed;
   top: 16px;
@@ -122,7 +138,7 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
 }
 #snapshot-btn img { width: 36px; height: 36px; filter: invert(1) brightness(2); }
 
-/* Info button */
+/* ---------- Info button ---------- */
 #info-btn {
   position: fixed;
   top: 16px;
@@ -139,11 +155,22 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
 }
 #info-btn:hover { background: rgba(255,255,255,0.05); }
 
-/* Location button */
-#location-btn { position: fixed; bottom: 10px; left: 20px; background: transparent; border: none; z-index: 20; }
-#location-btn img { width: 42px; height: 42px; filter: invert(1) brightness(1.6); }
+/* ---------- Location button (moved near camera) ---------- */
+#location-btn {
+  position: fixed;
+  top: 16px;         /* moved from bottom to top */
+  right: 120px;      /* sits to the left of info button */
+  background: transparent;
+  border: none;
+  z-index: 20;
+}
+#location-btn img {
+  width: 36px;
+  height: 36px;
+  filter: invert(1) brightness(1.6);
+}
 
-/* Info Modal */
+/* ---------- Info Modal ---------- */
 #info-modal {
   display: none;
   position: fixed;
@@ -161,9 +188,17 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
 }
 #info-modal h3 { margin-bottom: 10px; text-align: center; font-family: 'Playfair Display', serif; color: var(--accent); }
 .info-content ul { padding-left: 20px; line-height: 1.6; color: var(--muted); }
-.close-btn { background: var(--accent); color: var(--accent-contrast); padding: 10px 15px; border-radius: 8px; border: none; cursor: pointer; margin-top: 16px; }
+.close-btn {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  margin-top: 16px;
+}
 
-/* Snapshot Modal */
+/* ---------- Snapshot Modal ---------- */
 #snapshot-modal {
   display: none;
   position: fixed;
@@ -182,9 +217,17 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
   border: 1px solid rgba(0,0,0,0.06);
 }
 #snapshot-preview { width: 100%; max-width: 420px; border-radius: 10px; margin-bottom: 12px; }
-.snapshot-buttons button { margin: 6px; padding: 10px 16px; border-radius: 8px; border: none; background: var(--accent); color: var(--accent-contrast); cursor: pointer; }
+.snapshot-buttons button {
+  margin: 6px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  cursor: pointer;
+}
 
-/* Flash Overlay */
+/* ---------- Flash Overlay ---------- */
 #flash-overlay {
   position: fixed;
   inset: 0;
@@ -234,7 +277,13 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
 }
 
 /* Layout: main image + side slider */
-#gallery-layout { display: flex; gap: 14px; justify-content: center; align-items: center; flex-wrap: wrap; }
+#gallery-layout {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
 
 /* Big main image */
 #gallery-main {
@@ -258,7 +307,10 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
   border: 1px solid rgba(255,255,255,0.02);
 }
 #gallery-side-slider::-webkit-scrollbar { width: 6px; }
-#gallery-side-slider::-webkit-scrollbar-thumb { background: linear-gradient(180deg,var(--accent),var(--accent-2)); border-radius: 4px; }
+#gallery-side-slider::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg,var(--accent),var(--accent-2));
+  border-radius: 4px;
+}
 
 /* thumbs container */
 #gallery-thumbs { display: flex; flex-direction: column; gap: 10px; }
@@ -270,10 +322,18 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
   border-radius: 8px;
   border: 2px solid transparent;
 }
-#gallery-thumbs img.active { border-color: var(--accent); box-shadow: 0 8px 20px rgba(212,175,55,0.08); }
+#gallery-thumbs img.active {
+  border-color: var(--accent);
+  box-shadow: 0 8px 20px rgba(212,175,55,0.08);
+}
 
 /* Buttons under gallery */
-.gallery-buttons { display: flex; justify-content: center; margin-top: 12px; gap: 12px; }
+.gallery-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+  gap: 12px;
+}
 .gallery-buttons button {
   padding: 10px 18px;
   border-radius: 999px;
@@ -323,11 +383,48 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
 .tune-row { margin-bottom: 10px; display: flex; flex-direction: column; gap: 6px; }
 .tune-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
 .tune-value { background: rgba(0,0,0,0.45); padding: 2px 8px; border-radius: 99px; font-size: 12px; font-weight: 700; color: #fff; }
-.tune-row input[type="range"] { width: 100%; -webkit-appearance: none; appearance: none; height: 6px; background: rgba(255,255,255,0.1); border-radius: 99px; outline: none; }
-.tune-row input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 2px solid rgba(0,0,0,0.25); box-shadow: 0 4px 10px rgba(0,0,0,0.4); cursor: pointer; }
+.tune-row input[type="range"] {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 99px;
+  outline: none;
+}
+.tune-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid rgba(0,0,0,0.25);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+  cursor: pointer;
+}
 .toggle-row { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
-.toggle { --w:44px; --h:24px; width: var(--w); height: var(--h); background: rgba(255,255,255,0.08); border-radius: 999px; position: relative; cursor: pointer; transition: background .18s; }
-.toggle .knob { position: absolute; top: 2px; left: 2px; width: calc(var(--h) - 4px); height: calc(var(--h) - 4px); background: #fff; border-radius: 50%; transition: left .18s, background .18s; }
+.toggle {
+  --w:44px;
+  --h:24px;
+  width: var(--w);
+  height: var(--h);
+  background: rgba(255,255,255,0.08);
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  transition: background .18s;
+}
+.toggle .knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(var(--h) - 4px);
+  height: calc(var(--h) - 4px);
+  background: #fff;
+  border-radius: 50%;
+  transition: left .18s, background .18s;
+}
 .toggle.on { background: linear-gradient(90deg,var(--accent),var(--accent-2)); }
 .toggle.on .knob { left: calc(var(--w) - var(--h) + 2px); background: #fff; }
 .tuning-help { font-size: 11px; color: rgba(255,255,255,0.72); margin-top: 6px; }
@@ -337,38 +434,3 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
 .hidden { display: none !important; }
 
 /* end of file */
-/* ---------- Make Subcategory Buttons Look Like Gold/Diamond Pills ---------- */
-
-#subcategory-buttons {
-  position: fixed;
-  bottom: 60px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 16px;
-  z-index: 25;
-}
-
-#subcategory-buttons button {
-  padding: 10px 20px;
-  border-radius: 999px;
-  border: none;
-  background: linear-gradient(180deg, #f4c542, #e1a722);
-  color: #000;
-  font-weight: 600;
-  font-size: 15px;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.45);
-  transition: transform .15s ease, box-shadow .15s ease;
-}
-
-#subcategory-buttons button:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 26px rgba(0,0,0,0.55);
-}
-
-/* Active subcategory (same gold style as main active pill) */
-#subcategory-buttons button.active {
-  background: linear-gradient(180deg, #ffdb70, #f4b400);
-  color: #000;
-}
