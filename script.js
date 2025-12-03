@@ -563,10 +563,10 @@ function selectJewelryType(type){
 }
 function getRangeForType(type){
   let start = 1, end = 15;
-  if (type === 'gold_earrings') end = 16;
-  if (type === 'gold_necklaces') end = 19;
-  if (type === 'diamond_earrings') end = 9;
-  if (type === 'diamond_necklaces') end = 6;
+  if (type === 'gold_earrings') end = 5;
+  if (type === 'gold_necklaces') end = 5;
+  if (type === 'diamond_earrings') end = 5;
+  if (type === 'diamond_necklaces') end = 5;
   return { start, end };
 }
 function buildImageList(type){
