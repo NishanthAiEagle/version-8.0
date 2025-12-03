@@ -11,7 +11,7 @@ const IMAGE_COUNTS = {
   gold_earrings: 5,
   gold_necklaces: 5,
   diamond_earrings: 5,
-  diamond_necklaces: 5
+  diamond_necklaces: 6
 };
 
 /* DOM refs */
