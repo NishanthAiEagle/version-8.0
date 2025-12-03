@@ -32,8 +32,8 @@ if (!earSizeRange) {
   earSizeVal = { textContent: '0.24' };
   neckYRange = document.createElement('input'); neckYRange.value = '0.95';
   neckYVal = { textContent: '0.95' };
-  neckScaleRange = document.createElement('input'); neckScaleRange.value = '1.15';
-  neckScaleVal = { textContent: '1.15' };
+  neckScaleRange = document.createElement('input'); neckScaleRange.value = '.90';
+  neckScaleVal = { textContent: '.90' };
   posSmoothRange = document.createElement('input'); posSmoothRange.value = '0.88';
   posSmoothVal = { textContent: '0.88' };
   earSmoothRange = document.createElement('input'); earSmoothRange.value = '0.90';
