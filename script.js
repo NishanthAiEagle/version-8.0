@@ -42,8 +42,8 @@ let debugToggle    = document.getElementById('debugToggle');
 if (!earSizeRange) {
   earSizeRange = document.createElement('input'); earSizeRange.value = '0.24';
   earSizeVal = { textContent: '0.24' };
-  neckYRange = document.createElement('input'); neckYRange.value = '0.95';
-  neckYVal = { textContent: '0.95' };
+  neckYRange = document.createElement('input'); neckYRange.value = '0.65';
+  neckYVal = { textContent: '0.65' };
   neckScaleRange = document.createElement('input'); neckScaleRange.value = '.98';
   neckScaleVal = { textContent: '.98' };
   posSmoothRange = document.createElement('input'); posSmoothRange.value = '0.88';
