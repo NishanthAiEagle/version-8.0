@@ -47,7 +47,7 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
   left: 0;
   right: 0;
   bottom: 0;
-  height: 30vh; /* ~30% of screen height */
+  height: 20vh; /* ~30% of screen height */
   pointer-events: none;
   z-index: 5; /* above video, below UI buttons (which are z 20+) */
   background: linear-gradient(to top, rgba(0, 0, 0, 0.86), rgba(0,0,0,0.0));
