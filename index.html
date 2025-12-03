@@ -40,10 +40,14 @@
         </div>
 
         <div class="action-row">
-          <button id="info-btn" class="icon-btn" onclick="toggleInfoModal()" aria-label="Info">ℹ️</button>
-          <button id="snapshot-btn" class="primary-circle" onclick="takeSnapshot()" aria-label="Snapshot">
-            <img src="camera-icon.png" alt="Snapshot" />
-          </button>
+          <button id="info-btn" onclick="toggleInfoModal()">
+    <img src="info icon.png" alt="Info">
+</button>
+
+</button>
+         <button id="snapshot-btn" onclick="takeSnapshot()">
+    <img src="camera-icon.png" alt="Camera">
+</button>
         </div>
       </div>
 
@@ -66,23 +70,28 @@
     </section>
 
     <!-- small location link (left bottom) -->
-    <a id="location-btn" href="#" class="location-link" target="_blank" rel="noopener noreferrer">
-      <img src="location_icon.png" alt="Location" />
-    </a>
+    <a id="location-btn" href="https://maps.app.goo.gl/sUaHgHpHDYxrBSELA" target="_blank">
+    <img src="location_icon.png" alt="Location">
+</a>
+
+
 
     <!-- Flash overlay (snapshot effect) -->
     <div id="flash-overlay" aria-hidden="true"></div>
 
     <!-- Info modal -->
     <div id="info-modal" role="dialog" aria-modal="true" aria-labelledby="info-title" style="display:none;">
-      <h3 id="info-title">How to use</h3>
-      <div class="info-content">
-        <ul>
-          <li>Allow camera access when prompted.</li>
-          <li>Choose category → pick a design or press Try All.</li>
-          <li>Press Stop to view the gallery of captured looks.</li>
-        </ul>
-        <button class="close-btn" onclick="toggleInfoModal()">Got it</button>
+  <h3 id="info-title">How to use</h3>
+  <div class="info-content">
+    <ul>
+      <li>Allow camera access when prompted.</li>
+      <li>Choose category → pick a design or press Try All.</li>
+      <li>Press Stop to view the gallery of captured looks.</li>
+    </ul>
+    <button class="close-btn" onclick="toggleInfoModal()">Close</button>
+  </div>
+</div>
+
       </div>
     </div>
 

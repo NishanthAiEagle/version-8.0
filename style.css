@@ -156,7 +156,6 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
   cursor: pointer;
   z-index: 20;
 }
-#snapshot-btn img { width: 36px; height: 36px; filter: invert(1) brightness(2); }
 
 /* ---------- Info button ---------- */
 #info-btn {
@@ -184,11 +183,14 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
   border: none;
   z-index: 20;
 }
+#snapshot-btn img,
+#info-btn img,
 #location-btn img {
-  width: 36px;
-  height: 36px;
-  filter: invert(1) brightness(1.6);
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
 }
+
 
 /* ---------- Info Modal ---------- */
 #info-modal {
