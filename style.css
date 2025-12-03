@@ -50,7 +50,7 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
   height: 30vh; /* ~30% of screen height */
   pointer-events: none;
   z-index: 5; /* above video, below UI buttons (which are z 20+) */
-  background: linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.0));
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.86), rgba(0,0,0,0.0));
 }
 
 #webcam { display: none; }
