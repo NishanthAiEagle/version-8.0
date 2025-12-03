@@ -32,7 +32,27 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
 #logo img { height: 40px; }
 
 /* Video & Canvas */
-#video-container { position: absolute; inset: 0; overflow: hidden; background: #000; z-index: 0; }
+#video-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #000;
+  z-index: 0;
+}
+
+/* bottom 30% dark gradient behind jewellery & buttons */
+#video-container::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 30vh; /* ~30% of screen height */
+  pointer-events: none;
+  z-index: 5; /* above video, below UI buttons (which are z 20+) */
+  background: linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.0));
+}
+
 #webcam { display: none; }
 #overlay {
   position: absolute;
@@ -40,7 +60,8 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  /* COVER so no black bar on top/bottom */
+  object-fit: cover;
   background: #000;
   z-index: 1;
 }
@@ -48,7 +69,7 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
 /* ---------- Jewelry category bar (Gold / Diamond / Try All) ---------- */
 #jewelry-mode {
   position: fixed;
-  bottom: 150px;             /* moved a bit UP so it doesn’t collide with subcategory */
+  bottom: 150px;             /* above subcategory row */
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -75,7 +96,7 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
 /* ---------- Subcategory buttons (Gold Earrings / Necklaces etc.) ---------- */
 #subcategory-buttons {
   position: fixed;
-  bottom: 90px;              /* slight nudge down from main row, still above jewellery */
+  bottom: 90px;              /* just above jewellery thumbnails */
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -109,7 +130,7 @@ html, body, #app { height: 100%; width: 100%; background: var(--bg); color: #fff
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+  background: transparent; /* gradient already handled by video-container::after */
   display: flex;
   overflow-x: auto;
   padding: 10px 12px;
