@@ -1,5 +1,7 @@
 /* script.js — Full file (camera-init + earring placement + robust gallery close)
-   UPDATED: stopAutoTry() opens gallery with screenshots taken so far when user clicks Stop.
+   UPDATED: 
+   - stopAutoTry() opens gallery with screenshots taken so far when user clicks Stop.
+   - Auto-discover jewelry images: 1.png, 2.png… in each folder (gold_earrings, diamond_necklaces, etc.)
 */
 
 /* DOM refs */
@@ -276,11 +278,11 @@ function drawJewelrySmart(state, ctx, landmarks, meta) {
   const faceShape = meta.faceShape;
   const faceW = meta.faceWidth, faceH = meta.faceHeight;
 
-  // shape-based adjustments (increase xAdj and lower Y)
+  // shape-based adjustments
   let xAdjPx = 0, yAdjPx = 0, sizeMult = 1.0;
   if (faceShape === 'round') {
-    xAdjPx = Math.round(faceW * 0.06);   // increased outward push for round faces
-    yAdjPx = Math.round(faceH * 0.02);   // slightly lower
+    xAdjPx = Math.round(faceW * 0.06);
+    yAdjPx = Math.round(faceH * 0.02);
     sizeMult = 1.10;
   } else if (faceShape === 'oval') {
     xAdjPx = Math.round(faceW * 0.045);
@@ -295,28 +297,26 @@ function drawJewelrySmart(state, ctx, landmarks, meta) {
   // final earring factor uses slider + shape multiplier
   const finalEarringFactor = EAR_SIZE_FACTOR * sizeMult;
 
-  // EARRINGS: updated vertical offset to hang a bit lower (0.18)
+  // EARRINGS
   if (earringImg && landmarks) {
     const eWidth = earDist * finalEarringFactor;
     const eHeight = (earringImg.height / earringImg.width) * eWidth;
 
-    // compute positions (move outward using xAdjPx, lower downward using eHeight*0.18 + yAdjPx)
     const leftCenterX = leftEar.x - xAdjPx;
     const rightCenterX = rightEar.x + xAdjPx;
     const leftCenterY = leftEar.y + (eHeight * 0.18) + yAdjPx;
     const rightCenterY = rightEar.y + (eHeight * 0.18) + yAdjPx;
 
-    // rotation correction to keep earrings visually upright relative to face tilt
     const tiltCorrection = - (angle * 0.08);
 
-    // draw left
+    // left
     ctx.save();
     ctx.translate(leftCenterX, leftCenterY);
     ctx.rotate(tiltCorrection);
     ctx.drawImage(earringImg, -eWidth/2, -eHeight/2, eWidth, eHeight);
     ctx.restore();
 
-    // draw right (mirror rotation)
+    // right
     ctx.save();
     ctx.translate(rightCenterX, rightCenterY);
     ctx.rotate(-tiltCorrection);
@@ -324,7 +324,7 @@ function drawJewelrySmart(state, ctx, landmarks, meta) {
     ctx.restore();
   }
 
-  // NECKLACE (unchanged formula using tunables)
+  // NECKLACE
   if (necklaceImg && landmarks) {
     const nw = earDist * NECK_SCALE_MULTIPLIER;
     const nh = (necklaceImg.height / necklaceImg.width) * nw;
@@ -359,7 +359,13 @@ function compositeHeadOcclusion(mainCtx, landmarks, seg) {
     const segData = seg.data, segW = seg.width, segH = seg.height;
     const indices = [10,151,9,197,195,4];
     let minX=1,minY=1,maxX=0,maxY=0;
-    indices.forEach(i => { const x=landmarks[i].x, y=landmarks[i].y; if (x<minX) minX=x; if(y<minY) minY=y; if(x>maxX) maxX=x; if(y>maxY) maxY=y; });
+    indices.forEach(i => {
+      const x=landmarks[i].x, y=landmarks[i].y;
+      if (x<minX) minX=x;
+      if (y<minY) minY=y;
+      if (x>maxX) maxX=x;
+      if (y>maxY) maxY=y;
+    });
     const padX = 0.18*(maxX-minX), padY = 0.40*(maxY-minY);
     const L = Math.max(0, (minX - padX) * canvasElement.width);
     const T = Math.max(0, (minY - padY) * canvasElement.height);
@@ -383,7 +389,7 @@ function compositeHeadOcclusion(mainCtx, landmarks, seg) {
         const id = sy2 * segW + sx2;
         if (segData[id] === 1) {
           const i = (y*W + x)*4;
-          dst.data[i] = imgData.data[i];
+          dst.data[i]   = imgData.data[i];
           dst.data[i+1] = imgData.data[i+1];
           dst.data[i+2] = imgData.data[i+2];
           dst.data[i+3] = imgData.data[i+3];
@@ -398,72 +404,128 @@ function compositeHeadOcclusion(mainCtx, landmarks, seg) {
 }
 
 /* Snapshot helpers */
-function triggerFlash() { if (flashOverlay) { flashOverlay.classList.add('active'); setTimeout(()=>flashOverlay.classList.remove('active'), 180); } }
+function triggerFlash() {
+  if (flashOverlay) {
+    flashOverlay.classList.add('active');
+    setTimeout(()=>flashOverlay.classList.remove('active'), 180);
+  }
+}
 
 async function takeSnapshot() {
   if (!smoothedLandmarks) { alert('Face not detected'); return; }
   await ensureWatermarkLoaded();
   triggerFlash();
 
-  const snap = document.createElement('canvas'); snap.width = canvasElement.width; snap.height = canvasElement.height;
-  const ctx = snap.getContext('2d'); ctx.drawImage(videoElement, 0, 0, snap.width, snap.height);
-  // draw current jewelry
-  drawJewelrySmart(smoothedState, ctx, smoothedLandmarks, { faceWidth: (0.5*canvasElement.width), faceHeight:(0.7*canvasElement.height), faceShape: smoothedState.faceShape });
-  if (lastPersonSegmentation && lastPersonSegmentation.data) compositeHeadOcclusion(ctx, smoothedLandmarks, lastPersonSegmentation);
-  else drawWatermark(ctx);
+  const snap = document.createElement('canvas'); 
+  snap.width = canvasElement.width; 
+  snap.height = canvasElement.height;
+  const ctx = snap.getContext('2d'); 
+  ctx.drawImage(videoElement, 0, 0, snap.width, snap.height);
+
+  drawJewelrySmart(smoothedState, ctx, smoothedLandmarks, { 
+    faceWidth: (0.5*canvasElement.width), 
+    faceHeight:(0.7*canvasElement.height), 
+    faceShape: smoothedState.faceShape 
+  });
+  if (lastPersonSegmentation && lastPersonSegmentation.data) 
+    compositeHeadOcclusion(ctx, smoothedLandmarks, lastPersonSegmentation);
+  else 
+    drawWatermark(ctx);
 
   lastSnapshotDataURL = snap.toDataURL('image/png');
   const preview = document.getElementById('snapshot-preview');
-  if (preview) { preview.src = lastSnapshotDataURL; const m = document.getElementById('snapshot-modal'); if (m) m.style.display = 'block'; }
+  if (preview) {
+    preview.src = lastSnapshotDataURL;
+    const m = document.getElementById('snapshot-modal');
+    if (m) m.style.display = 'block';
+  }
 }
-function saveSnapshot() { if (!lastSnapshotDataURL) return; const a = document.createElement('a'); a.href = lastSnapshotDataURL; a.download = `jewelry-${Date.now()}.png`; a.click(); }
+function saveSnapshot() {
+  if (!lastSnapshotDataURL) return;
+  const a = document.createElement('a'); 
+  a.href = lastSnapshotDataURL; 
+  a.download = `jewelry-${Date.now()}.png`; 
+  a.click();
+}
 async function shareSnapshot() {
   if (!navigator.share) { alert('Sharing not supported'); return; }
   const blob = await (await fetch(lastSnapshotDataURL)).blob();
-  const file = new File([blob], 'look.png', { type: 'image/png' }); await navigator.share({ files: [file] });
+  const file = new File([blob], 'look.png', { type: 'image/png' });
+  await navigator.share({ files: [file] });
 }
-function closeSnapshotModal() { const m = document.getElementById('snapshot-modal'); if (m) m.style.display = 'none'; }
+function closeSnapshotModal() {
+  const m = document.getElementById('snapshot-modal');
+  if (m) m.style.display = 'none';
+}
 
-/* Try-all & gallery (keeps same behaviour) */
+/* Try-all & gallery */
 let autoTryRunning = false, autoTryTimeout = null, autoTryIndex = 0, autoSnapshots = [];
+
 function stopAutoTry(){
-  // Stop running
   autoTryRunning = false;
   if (autoTryTimeout) clearTimeout(autoTryTimeout);
   autoTryTimeout = null;
-  try { tryAllBtn.classList.remove('active'); tryAllBtn.textContent = 'Try All'; } catch(e){}
+  try { 
+    tryAllBtn.classList.remove('active'); 
+    tryAllBtn.textContent = 'Try All'; 
+  } catch(e){}
 
-  // NEW: if there are snapshots captured so far, open the gallery so user can see how many were taken
   if (autoSnapshots && autoSnapshots.length) {
     openGallery();
   }
 }
-function toggleTryAll(){ if (autoTryRunning) stopAutoTry(); else startAutoTry(); }
+function toggleTryAll(){ 
+  if (autoTryRunning) stopAutoTry(); 
+  else startAutoTry(); 
+}
 
 async function startAutoTry(){
   if (!currentType) { alert('Choose a category first'); return; }
-  const list = buildImageList(currentType); if (!list.length) { alert('No items'); return; }
-  autoSnapshots = []; autoTryIndex = 0; autoTryRunning = true;
-  try { tryAllBtn.classList.add('active'); tryAllBtn.textContent = 'Stop'; } catch(e){}
+  const list = await buildImageList(currentType);
+  if (!list.length) { alert('No items'); return; }
+
+  autoSnapshots = []; 
+  autoTryIndex = 0; 
+  autoTryRunning = true;
+  try { 
+    tryAllBtn.classList.add('active'); 
+    tryAllBtn.textContent = 'Stop'; 
+  } catch(e){}
+
   const step = async () => {
     if (!autoTryRunning) return;
     const src = list[autoTryIndex];
-    if (currentType.includes('earrings')) await changeEarring(src); else await changeNecklace(src);
+    if (currentType.includes('earrings')) await changeEarring(src); 
+    else await changeNecklace(src);
+
     await new Promise(r => setTimeout(r, 800));
     triggerFlash();
+
     if (smoothedLandmarks) {
-      const snap = document.createElement('canvas'); snap.width = canvasElement.width; snap.height = canvasElement.height;
-      const ctx = snap.getContext('2d'); try { ctx.drawImage(videoElement, 0, 0, snap.width, snap.height); } catch(e) {}
-      drawJewelrySmart(smoothedState, ctx, smoothedLandmarks, { faceWidth: (0.5*canvasElement.width), faceHeight:(0.7*canvasElement.height), faceShape: smoothedState.faceShape });
-      if (lastPersonSegmentation && lastPersonSegmentation.data) compositeHeadOcclusion(ctx, smoothedLandmarks, lastPersonSegmentation);
-      else drawWatermark(ctx);
+      const snap = document.createElement('canvas'); 
+      snap.width = canvasElement.width; 
+      snap.height = canvasElement.height;
+      const ctx = snap.getContext('2d'); 
+      try { ctx.drawImage(videoElement, 0, 0, snap.width, snap.height); } catch(e) {}
+      drawJewelrySmart(smoothedState, ctx, smoothedLandmarks, { 
+        faceWidth: (0.5*canvasElement.width), 
+        faceHeight:(0.7*canvasElement.height), 
+        faceShape: smoothedState.faceShape 
+      });
+      if (lastPersonSegmentation && lastPersonSegmentation.data) 
+        compositeHeadOcclusion(ctx, smoothedLandmarks, lastPersonSegmentation);
+      else 
+        drawWatermark(ctx);
       autoSnapshots.push(snap.toDataURL('image/png'));
     }
+
     autoTryIndex++;
     if (autoTryIndex >= list.length) {
-      // finished sequence: open gallery if we captured anything
       autoTryRunning = false;
-      try { tryAllBtn.classList.remove('active'); tryAllBtn.textContent = 'Try All'; } catch(e){}
+      try { 
+        tryAllBtn.classList.remove('active'); 
+        tryAllBtn.textContent = 'Try All'; 
+      } catch(e){}
       if (autoSnapshots.length) openGallery();
       return;
     }
@@ -476,16 +538,17 @@ async function startAutoTry(){
 function openGallery(){
   if (!autoSnapshots || !autoSnapshots.length) return;
   if (!galleryThumbs) return;
+
   galleryThumbs.innerHTML = '';
   autoSnapshots.forEach((src,i) => {
-    const img = document.createElement('img'); img.src = src;
+    const img = document.createElement('img'); 
+    img.src = src;
     img.onclick = () => setGalleryMain(i);
     galleryThumbs.appendChild(img);
   });
   setGalleryMain(0);
   const gm = document.getElementById('gallery-modal');
   if (gm) gm.style.display = 'flex';
-  // lock page scroll while gallery is open
   document.body.style.overflow = 'hidden';
 }
 function setGalleryMain(i){
@@ -498,14 +561,11 @@ function setGalleryMain(i){
 /* ---- Robust gallery close / cleanup ---- */
 function closeGalleryClean() {
   try {
-    // stop any ongoing Try-All
     if (typeof stopAutoTry === 'function') stopAutoTry();
-  } catch(e){ /* ignore */ }
+  } catch(e){}
 
-  // clear snapshot buffer so it won't auto-open later
   autoSnapshots = [];
 
-  // fully hide the modal and restore interactions/scroll
   const gm = document.getElementById('gallery-modal');
   if (gm) {
     gm.style.display = 'none';
@@ -513,14 +573,11 @@ function closeGalleryClean() {
   }
 
   document.body.style.overflow = '';
-  // refocus page
   try { window.focus(); } catch(e){}
 }
 
-/* wire the new cleaner close handler */
 const galleryCloseBtn = document.getElementById('gallery-close');
 if (galleryCloseBtn) {
-  // remove previous handlers if any
   try { galleryCloseBtn.removeEventListener && galleryCloseBtn.removeEventListener('click', closeGalleryClean); } catch(e){}
   galleryCloseBtn.addEventListener('click', closeGalleryClean);
 }
@@ -543,50 +600,83 @@ async function shareCurrentFromGallery(){
   await navigator.share({ files: [file] });
 }
 
-/* Asset UI: categories & thumbnails */
+/* ===========================
+   Asset UI: categories & thumbnails
+   ===========================*/
+
+/* Show subcategory pills for chosen main category */
 function toggleCategory(category){
   const subPanel = document.getElementById('subcategory-buttons');
   if (subPanel) subPanel.style.display = 'flex';
+
   const subs = document.querySelectorAll('#subcategory-buttons button');
-  subs.forEach(b => b.style.display = b.innerText.toLowerCase().includes(category) ? 'inline-block' : 'none');
-  const jopt = document.getElementById('jewelry-options'); if (jopt) jopt.style.display = 'none';
-  // ensure TryAll is stopped when switching
+  subs.forEach(b => {
+    const label = b.innerText.toLowerCase();
+    b.style.display = label.includes(category) ? 'inline-block' : 'none';
+  });
+
+  const jopt = document.getElementById('jewelry-options'); 
+  if (jopt) jopt.style.display = 'none';
+
   stopAutoTry();
 }
-function selectJewelryType(type){
-  currentType = type;
-  const jopt = document.getElementById('jewelry-options'); if (jopt) jopt.style.display = 'flex';
-  earringImg = null; necklaceImg = null;
-  const { start, end } = getRangeForType(type);
-  insertJewelryOptions(type, 'jewelry-options', start, end);
-  stopAutoTry();
-}
-function getRangeForType(type){
-  let start = 1, end = 15;
-  if (type === 'gold_earrings') end = 6;
-  if (type === 'gold_necklaces') end = 5;
-  if (type === 'diamond_earrings') end = 5;
-  if (type === 'diamond_necklaces') end = 5;
-  return { start, end };
-}
-function buildImageList(type){
-  const { start, end } = getRangeForType(type);
-  const list = [];
-  for (let i = start; i <= end; i++) list.push(`${type}/${type}${i}.png`);
-  return list;
-}
-function insertJewelryOptions(type, containerId, startIndex, endIndex) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  container.innerHTML = '';
-  for (let i = startIndex; i <= endIndex; i++){
-    const src = `${type}/${type}${i}.png`;
-    const btn = document.createElement('button');
-    const img = document.createElement('img'); img.src = src;
-    btn.appendChild(img);
-    btn.onclick = () => { if (type.includes('earrings')) changeEarring(src); else changeNecklace(src); };
-    container.appendChild(btn);
+
+/* Auto-detect available images by trying 1.png…maxCheck.png */
+async function discoverFiles(type, maxCheck = 50) {
+  const found = [];
+
+  for (let i = 1; i <= maxCheck; i++) {
+    const src = `${type}/${i}.png`;
+    const img = new Image();
+
+    const exists = await new Promise(res => {
+      img.onload = () => res(true);
+      img.onerror = () => res(false);
+      img.src = src;
+    });
+
+    if (exists) found.push(src);
   }
+
+  return found;
+}
+
+/* When subcategory is selected */
+async function selectJewelryType(type){
+  currentType = type;
+
+  const container = document.getElementById('jewelry-options');
+  if (!container) return;
+
+  container.innerHTML = '';
+  container.style.display = 'flex';
+
+  earringImg = null; 
+  necklaceImg = null;
+
+  stopAutoTry();
+
+  // Auto-detect all numbered files in that folder
+  const list = await discoverFiles(type);
+
+  list.forEach(src => {
+    const btn = document.createElement('button');
+    const img = document.createElement('img');
+    img.src = src;
+    btn.appendChild(img);
+
+    btn.onclick = () => {
+      if (type.includes('earrings')) changeEarring(src);
+      else changeNecklace(src);
+    };
+
+    container.appendChild(btn);
+  });
+}
+
+/* Used by Try-All */
+async function buildImageList(type){
+  return await discoverFiles(type);
 }
 
 /* load earring / necklace images */
@@ -594,30 +684,71 @@ async function changeEarring(src){ earringImg = await loadImage(src); }
 async function changeNecklace(src){ necklaceImg = await loadImage(src); }
 
 /* watermark ensure */
-function ensureWatermarkLoaded(){ return new Promise(res => { if (watermarkImg.complete && watermarkImg.naturalWidth) res(); else { watermarkImg.onload = () => res(); watermarkImg.onerror = () => res(); } }); }
+function ensureWatermarkLoaded(){
+  return new Promise(res => {
+    if (watermarkImg.complete && watermarkImg.naturalWidth) res();
+    else {
+      watermarkImg.onload = () => res();
+      watermarkImg.onerror = () => res();
+    }
+  });
+}
 
 /* info modal toggle */
-function toggleInfoModal(){ const m = document.getElementById('info-modal'); if (m) m.style.display = (m.style.display === 'block') ? 'none' : 'block'; }
+function toggleInfoModal(){
+  const m = document.getElementById('info-modal');
+  if (m) m.style.display = (m.style.display === 'block') ? 'none' : 'block';
+}
 
 /* debug draw */
 function drawDebugMarkers(){
   if (!smoothedState.leftEar) return;
   const ctx = canvasCtx;
   ctx.save();
-  ctx.fillStyle = 'cyan'; ctx.beginPath(); ctx.arc(smoothedState.leftEar.x, smoothedState.leftEar.y, 6, 0, Math.PI*2); ctx.fill(); ctx.fillText('L', smoothedState.leftEar.x + 8, smoothedState.leftEar.y);
-  ctx.fillStyle = 'magenta'; ctx.beginPath(); ctx.arc(smoothedState.rightEar.x, smoothedState.rightEar.y, 6, 0, Math.PI*2); ctx.fill(); ctx.fillText('R', smoothedState.rightEar.x + 8, smoothedState.rightEar.y);
-  ctx.fillStyle = 'yellow'; ctx.beginPath(); ctx.arc(smoothedState.neckPoint.x, smoothedState.neckPoint.y, 6, 0, Math.PI*2); ctx.fill(); ctx.fillText('N', smoothedState.neckPoint.x + 8, smoothedState.neckPoint.y);
+  ctx.fillStyle = 'cyan';
+  ctx.beginPath();
+  ctx.arc(smoothedState.leftEar.x, smoothedState.leftEar.y, 6, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillText('L', smoothedState.leftEar.x + 8, smoothedState.leftEar.y);
+
+  ctx.fillStyle = 'magenta';
+  ctx.beginPath();
+  ctx.arc(smoothedState.rightEar.x, smoothedState.rightEar.y, 6, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillText('R', smoothedState.rightEar.x + 8, smoothedState.rightEar.y);
+
+  ctx.fillStyle = 'yellow';
+  ctx.beginPath();
+  ctx.arc(smoothedState.neckPoint.x, smoothedState.neckPoint.y, 6, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillText('N', smoothedState.neckPoint.x + 8, smoothedState.neckPoint.y);
   ctx.restore();
 }
 
 /* slider bindings (if present) */
-if (earSizeRange.addEventListener) earSizeRange.addEventListener('input', () => { EAR_SIZE_FACTOR = parseFloat(earSizeRange.value); if (earSizeVal) earSizeVal.textContent = EAR_SIZE_FACTOR.toFixed(2); });
-if (neckYRange.addEventListener) neckYRange.addEventListener('input', () => { NECK_Y_OFFSET_FACTOR = parseFloat(neckYRange.value); if (neckYVal) neckYVal.textContent = NECK_Y_OFFSET_FACTOR.toFixed(2); });
-if (neckScaleRange.addEventListener) neckScaleRange.addEventListener('input', () => { NECK_SCALE_MULTIPLIER = parseFloat(neckScaleRange.value); if (neckScaleVal) neckScaleVal.textContent = NECK_SCALE_MULTIPLIER.toFixed(2); });
-if (posSmoothRange.addEventListener) posSmoothRange.addEventListener('input', () => { POS_SMOOTH = parseFloat(posSmoothRange.value); if (posSmoothVal) posSmoothVal.textContent = POS_SMOOTH.toFixed(2); });
-if (earSmoothRange.addEventListener) earSmoothRange.addEventListener('input', () => { EAR_DIST_SMOOTH = parseFloat(earSmoothRange.value); if (earSmoothVal) earSmoothVal.textContent = EAR_DIST_SMOOTH.toFixed(2); });
+if (earSizeRange.addEventListener) earSizeRange.addEventListener('input', () => {
+  EAR_SIZE_FACTOR = parseFloat(earSizeRange.value);
+  if (earSizeVal) earSizeVal.textContent = EAR_SIZE_FACTOR.toFixed(2);
+});
+if (neckYRange.addEventListener) neckYRange.addEventListener('input', () => {
+  NECK_Y_OFFSET_FACTOR = parseFloat(neckYRange.value);
+  if (neckYVal) neckYVal.textContent = NECK_Y_OFFSET_FACTOR.toFixed(2);
+});
+if (neckScaleRange.addEventListener) neckScaleRange.addEventListener('input', () => {
+  NECK_SCALE_MULTIPLIER = parseFloat(neckScaleRange.value);
+  if (neckScaleVal) neckScaleVal.textContent = NECK_SCALE_MULTIPLIER.toFixed(2);
+});
+if (posSmoothRange.addEventListener) posSmoothRange.addEventListener('input', () => {
+  POS_SMOOTH = parseFloat(posSmoothRange.value);
+  if (posSmoothVal) posSmoothVal.textContent = POS_SMOOTH.toFixed(2);
+});
+if (earSmoothRange.addEventListener) earSmoothRange.addEventListener('input', () => {
+  EAR_DIST_SMOOTH = parseFloat(earSmoothRange.value);
+  if (earSmoothVal) earSmoothVal.textContent = EAR_DIST_SMOOTH.toFixed(2);
+});
 
-if (debugToggle.addEventListener) debugToggle.addEventListener('click', () => debugToggle.classList.toggle('on') );
+if (debugToggle.addEventListener) 
+  debugToggle.addEventListener('click', () => debugToggle.classList.toggle('on') );
 
 /* start BodyPix load early */
 ensureBodyPixLoaded();
@@ -634,13 +765,12 @@ window.downloadAllImages = downloadAllImages;
 window.shareCurrentFromGallery = shareCurrentFromGallery;
 window.toggleInfoModal = toggleInfoModal;
 
-/* end of file */
 /* ===========================
-       DISABLE RIGHT CLICK & DEV TOOLS
-    ============================ */
-    document.addEventListener('contextmenu', (e) => e.preventDefault());
-    document.onkeydown = function(e) {
-      if (e.keyCode === 123) return false; // F12
-      if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67 || e.keyCode === 75)) return false;
-      if (e.ctrlKey && e.keyCode === 85) return false; // Ctrl+U
-    };
+   DISABLE RIGHT CLICK & DEV TOOLS
+   ============================ */
+document.addEventListener('contextmenu', (e) => e.preventDefault());
+document.onkeydown = function(e) {
+  if (e.keyCode === 123) return false; // F12
+  if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67 || e.keyCode === 75)) return false;
+  if (e.ctrlKey && e.keyCode === 85) return false; // Ctrl+U
+};
