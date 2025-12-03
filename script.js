@@ -1,8 +1,18 @@
 /* script.js — Full file (camera-init + earring placement + robust gallery close)
-   UPDATED: 
-   - stopAutoTry() opens gallery with screenshots taken so far when user clicks Stop.
-   - Auto-discover jewelry images: 1.png, 2.png… in each folder (gold_earrings, diamond_necklaces, etc.)
+   Uses numbered files:
+   gold_earrings/1.png … N.png
+   gold_necklaces/1.png … N.png
+   diamond_earrings/1.png … N.png
+   diamond_necklaces/1.png … N.png
 */
+
+/* ====== CONFIG: how many images per folder ====== */
+const IMAGE_COUNTS = {
+  gold_earrings: 5,
+  gold_necklaces: 5,
+  diamond_earrings: 5,
+  diamond_necklaces: 5
+};
 
 /* DOM refs */
 const videoElement   = document.getElementById('webcam');
@@ -114,7 +124,7 @@ async function runBodyPixIfNeeded(){
   }
 }
 
-/* ---------- FACE MESH SETUP (but we start camera after getUserMedia) ---------- */
+/* ---------- FACE MESH SETUP ---------- */
 const faceMesh = new FaceMesh({ locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}` });
 faceMesh.setOptions({ maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.6, minTrackingConfidence:0.6 });
 faceMesh.onResults(onFaceMeshResults);
@@ -122,13 +132,14 @@ faceMesh.onResults(onFaceMeshResults);
 /* Start process: request camera permission explicitly, then create Camera helper */
 async function initCameraAndModels() {
   try {
-    // explicit permission + stream request
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 1280, height: 720 }, audio: false });
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: 1280, height: 720 },
+      audio: false
+    });
     videoElement.srcObject = stream;
     videoElement.muted = true;
     videoElement.playsInline = true;
 
-    // show raw video briefly (helps ensure frames exist)
     videoElement.style.display = 'block';
     videoElement.style.position = 'fixed';
     videoElement.style.top = '12px';
@@ -138,7 +149,6 @@ async function initCameraAndModels() {
 
     await videoElement.play();
 
-    // now start faceMesh processing using Mediapipe Camera helper (safe after stream)
     const cameraHelper = new Camera(videoElement, {
       onFrame: async () => { await faceMesh.send({ image: videoElement }); },
       width: 1280,
@@ -146,16 +156,13 @@ async function initCameraAndModels() {
     });
     cameraHelper.start();
 
-    // hide the raw video now that canvas will show the feed
     videoElement.style.display = 'none';
 
-    // load BodyPix in background
     ensureBodyPixLoaded();
 
     console.log('✅ Camera stream started and FaceMesh helper initialized.');
   } catch (err) {
     console.error('Camera init error:', err);
-    // Provide friendly prompt if permission denied or device missing
     if (err.name === 'NotAllowedError' || err.name === 'SecurityError') {
       alert('Please allow camera access for this site (click the camera icon in your browser URL bar).');
     } else if (err.name === 'NotFoundError') {
@@ -165,19 +172,15 @@ async function initCameraAndModels() {
     }
   }
 }
-
-/* call init on load */
 initCameraAndModels();
 
 /* FaceMesh results handler */
 async function onFaceMeshResults(results) {
-  // Resize canvas to match video
   if (videoElement.videoWidth && videoElement.videoHeight) {
     canvasElement.width = videoElement.videoWidth;
     canvasElement.height = videoElement.videoHeight;
   }
 
-  // draw video frame as base
   canvasCtx.clearRect(0,0,canvasElement.width,canvasElement.height);
   try { canvasCtx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height); } catch(e) {}
 
@@ -189,7 +192,6 @@ async function onFaceMeshResults(results) {
 
   const landmarks = results.multiFaceLandmarks[0];
 
-  // light smoothing for landmarks
   if (!smoothedLandmarks) smoothedLandmarks = landmarks;
   else {
     smoothedLandmarks = smoothedLandmarks.map((prev,i) => ({
@@ -199,12 +201,10 @@ async function onFaceMeshResults(results) {
     }));
   }
 
-  // compute key pixel points
   const leftEar  = { x: toPxX(smoothedLandmarks[132].x), y: toPxY(smoothedLandmarks[132].y) };
   const rightEar = { x: toPxX(smoothedLandmarks[361].x), y: toPxY(smoothedLandmarks[361].y) };
   const neckP    = { x: toPxX(smoothedLandmarks[152].x), y: toPxY(smoothedLandmarks[152].y) };
 
-  // compute face bbox for shape classification
   let minX=1,minY=1,maxX=0,maxY=0;
   for (let i=0;i<smoothedLandmarks.length;i++){
     const lm = smoothedLandmarks[i];
@@ -217,26 +217,25 @@ async function onFaceMeshResults(results) {
   const faceHeight = (maxY - minY) * canvasElement.height;
   const aspect = faceHeight / (faceWidth || 1);
 
-  // classify face shape
   let faceShape = 'oval';
   if (aspect < 1.05) faceShape = 'round';
   else if (aspect > 1.25) faceShape = 'long';
   else faceShape = 'oval';
   smoothedState.faceShape = faceShape;
 
-  // earDist and smoothing
   const rawEarDist = Math.hypot(rightEar.x - leftEar.x, rightEar.y - leftEar.y);
   if (smoothedState.earDist == null) smoothedState.earDist = rawEarDist;
   else smoothedState.earDist = smoothedState.earDist * EAR_DIST_SMOOTH + rawEarDist * (1 - EAR_DIST_SMOOTH);
 
-  // position smoothing for ear & neck points
   if (!smoothedState.leftEar) {
-    smoothedState.leftEar = leftEar; smoothedState.rightEar = rightEar; smoothedState.neckPoint = neckP;
+    smoothedState.leftEar = leftEar;
+    smoothedState.rightEar = rightEar;
+    smoothedState.neckPoint = neckP;
     smoothedState.angle = Math.atan2(rightEar.y - leftEar.y, rightEar.x - leftEar.x);
   } else {
-    smoothedState.leftEar = lerpPt(smoothedState.leftEar, leftEar, POS_SMOOTH);
+    smoothedState.leftEar  = lerpPt(smoothedState.leftEar,  leftEar,  POS_SMOOTH);
     smoothedState.rightEar = lerpPt(smoothedState.rightEar, rightEar, POS_SMOOTH);
-    smoothedState.neckPoint = lerpPt(smoothedState.neckPoint, neckP, POS_SMOOTH);
+    smoothedState.neckPoint= lerpPt(smoothedState.neckPoint,neckP,   POS_SMOOTH);
 
     const rawAngle = Math.atan2(rightEar.y - leftEar.y, rightEar.x - leftEar.x);
     let prev = smoothedState.angle;
@@ -246,7 +245,6 @@ async function onFaceMeshResults(results) {
     smoothedState.angle = prev + diff * (1 - 0.82);
   }
 
-  // angle median smoothing
   angleBuffer.push(smoothedState.angle);
   if (angleBuffer.length > ANGLE_BUFFER_LEN) angleBuffer.shift();
   if (angleBuffer.length > 2) {
@@ -254,10 +252,8 @@ async function onFaceMeshResults(results) {
     smoothedState.angle = s[Math.floor(s.length/2)];
   }
 
-  // draw jewelry with smarter adjustments
   drawJewelrySmart(smoothedState, canvasCtx, smoothedLandmarks, { faceWidth, faceHeight, faceShape });
 
-  // segmentation & occlusion (throttled)
   await ensureBodyPixLoaded();
   runBodyPixIfNeeded();
   if (lastPersonSegmentation && lastPersonSegmentation.data) {
@@ -266,11 +262,10 @@ async function onFaceMeshResults(results) {
     drawWatermark(canvasCtx);
   }
 
-  // debug markers if toggled
   if (debugToggle.classList && debugToggle.classList.contains('on')) drawDebugMarkers();
 }
 
-/* Core: draw jewelry with shape-aware offsets (xAdj and lowered y) */
+/* Core: draw jewelry with shape-aware offsets */
 function drawJewelrySmart(state, ctx, landmarks, meta) {
   const leftEar = state.leftEar, rightEar = state.rightEar, neckPoint = state.neckPoint;
   const earDist = state.earDist || Math.hypot(rightEar.x - leftEar.x, rightEar.y - leftEar.y);
@@ -278,7 +273,6 @@ function drawJewelrySmart(state, ctx, landmarks, meta) {
   const faceShape = meta.faceShape;
   const faceW = meta.faceWidth, faceH = meta.faceHeight;
 
-  // shape-based adjustments
   let xAdjPx = 0, yAdjPx = 0, sizeMult = 1.0;
   if (faceShape === 'round') {
     xAdjPx = Math.round(faceW * 0.06);
@@ -288,16 +282,14 @@ function drawJewelrySmart(state, ctx, landmarks, meta) {
     xAdjPx = Math.round(faceW * 0.045);
     yAdjPx = Math.round(faceH * 0.015);
     sizeMult = 1.00;
-  } else { // long
+  } else {
     xAdjPx = Math.round(faceW * 0.04);
     yAdjPx = Math.round(faceH * 0.005);
     sizeMult = 0.95;
   }
 
-  // final earring factor uses slider + shape multiplier
   const finalEarringFactor = EAR_SIZE_FACTOR * sizeMult;
 
-  // EARRINGS
   if (earringImg && landmarks) {
     const eWidth = earDist * finalEarringFactor;
     const eHeight = (earringImg.height / earringImg.width) * eWidth;
@@ -309,14 +301,12 @@ function drawJewelrySmart(state, ctx, landmarks, meta) {
 
     const tiltCorrection = - (angle * 0.08);
 
-    // left
     ctx.save();
     ctx.translate(leftCenterX, leftCenterY);
     ctx.rotate(tiltCorrection);
     ctx.drawImage(earringImg, -eWidth/2, -eHeight/2, eWidth, eHeight);
     ctx.restore();
 
-    // right
     ctx.save();
     ctx.translate(rightCenterX, rightCenterY);
     ctx.rotate(-tiltCorrection);
@@ -324,7 +314,6 @@ function drawJewelrySmart(state, ctx, landmarks, meta) {
     ctx.restore();
   }
 
-  // NECKLACE
   if (necklaceImg && landmarks) {
     const nw = earDist * NECK_SCALE_MULTIPLIER;
     const nh = (necklaceImg.height / necklaceImg.width) * nw;
@@ -359,12 +348,12 @@ function compositeHeadOcclusion(mainCtx, landmarks, seg) {
     const segData = seg.data, segW = seg.width, segH = seg.height;
     const indices = [10,151,9,197,195,4];
     let minX=1,minY=1,maxX=0,maxY=0;
-    indices.forEach(i => {
-      const x=landmarks[i].x, y=landmarks[i].y;
-      if (x<minX) minX=x;
-      if (y<minY) minY=y;
-      if (x>maxX) maxX=x;
-      if (y>maxY) maxY=y;
+    indices.forEach(i => { 
+      const x=landmarks[i].x, y=landmarks[i].y; 
+      if (x<minX) minX=x; 
+      if(y<minY) minY=y; 
+      if(x>maxX) maxX=x; 
+      if(y>maxY) maxY=y; 
     });
     const padX = 0.18*(maxX-minX), padY = 0.40*(maxY-minY);
     const L = Math.max(0, (minX - padX) * canvasElement.width);
@@ -481,7 +470,7 @@ function toggleTryAll(){
 
 async function startAutoTry(){
   if (!currentType) { alert('Choose a category first'); return; }
-  const list = await buildImageList(currentType);
+  const list = buildImageList(currentType);
   if (!list.length) { alert('No items'); return; }
 
   autoSnapshots = []; 
@@ -604,7 +593,6 @@ async function shareCurrentFromGallery(){
    Asset UI: categories & thumbnails
    ===========================*/
 
-/* Show subcategory pills for chosen main category */
 function toggleCategory(category){
   const subPanel = document.getElementById('subcategory-buttons');
   if (subPanel) subPanel.style.display = 'flex';
@@ -621,28 +609,13 @@ function toggleCategory(category){
   stopAutoTry();
 }
 
-/* Auto-detect available images by trying 1.png…maxCheck.png */
-async function discoverFiles(type, maxCheck = 50) {
-  const found = [];
-
-  for (let i = 1; i <= maxCheck; i++) {
-    const src = `${type}/${i}.png`;
-    const img = new Image();
-
-    const exists = await new Promise(res => {
-      img.onload = () => res(true);
-      img.onerror = () => res(false);
-      img.src = src;
-    });
-
-    if (exists) found.push(src);
-  }
-
-  return found;
+/* how many images for this type */
+function getCountForType(type){
+  return IMAGE_COUNTS[type] || 0;
 }
 
 /* When subcategory is selected */
-async function selectJewelryType(type){
+function selectJewelryType(type){
   currentType = type;
 
   const container = document.getElementById('jewelry-options');
@@ -656,10 +629,9 @@ async function selectJewelryType(type){
 
   stopAutoTry();
 
-  // Auto-detect all numbered files in that folder
-  const list = await discoverFiles(type);
-
-  list.forEach(src => {
+  const count = getCountForType(type);
+  for (let i = 1; i <= count; i++){
+    const src = `${type}/${i}.png`;
     const btn = document.createElement('button');
     const img = document.createElement('img');
     img.src = src;
@@ -671,12 +643,17 @@ async function selectJewelryType(type){
     };
 
     container.appendChild(btn);
-  });
+  }
 }
 
 /* Used by Try-All */
-async function buildImageList(type){
-  return await discoverFiles(type);
+function buildImageList(type){
+  const count = getCountForType(type);
+  const list = [];
+  for (let i = 1; i <= count; i++){
+    list.push(`${type}/${i}.png`);
+  }
+  return list;
 }
 
 /* load earring / necklace images */
@@ -747,7 +724,7 @@ if (earSmoothRange.addEventListener) earSmoothRange.addEventListener('input', ()
   if (earSmoothVal) earSmoothVal.textContent = EAR_DIST_SMOOTH.toFixed(2);
 });
 
-if (debugToggle.addEventListener) 
+if (debugToggle.addEventListener)
   debugToggle.addEventListener('click', () => debugToggle.classList.toggle('on') );
 
 /* start BodyPix load early */
